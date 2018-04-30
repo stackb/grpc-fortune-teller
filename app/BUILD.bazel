@@ -1,0 +1,53 @@
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_embed_data")
+load("@io_bazel_rules_docker//go:image.bzl", "go_image")
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "main.go",
+        ":fortune_assets",  # keep
+    ],
+    importpath = "github.com/stackb/fortune-teller/app",
+    visibility = ["//visibility:private"],
+    deps = [
+        "//app/fileutil:go_default_library",
+        "//proto/fortune:go_default_library",
+        "@com_github_vromero_gofortune//lib/fortune:go_default_library",
+        "@org_golang_google_grpc//:go_default_library",
+        "@org_golang_google_grpc//codes:go_default_library",
+    ],
+)
+
+go_binary(
+    name = "fortune",
+    embed = [":go_default_library"],
+    static = "on",
+    visibility = ["//visibility:public"],
+)
+
+go_image(
+    name = "image",
+    binary = ":fortune",
+    visibility = ["//visibility:public"],
+)
+
+# Concatenates well known certs to a single bundle.
+# May need to adjust /etc/ssl/certs for your system.
+genrule(
+    name = "tar",
+    outs = ["fortune.tar"],
+    cmd = " && ".join([
+        "OUT=$$(pwd)/$@",
+        "tar -cvf $$OUT /usr/share/games/fortunes",
+    ]),
+)
+
+go_embed_data(
+    name = "fortune_assets",
+    srcs = [
+        ":tar",
+    ],
+    package = "main",
+    unpack = True,
+    var = "fortuneFiles",
+)
