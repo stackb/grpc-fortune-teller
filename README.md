@@ -32,3 +32,12 @@ $ docker run bazel/app:image
 2018/05/01 02:13:43 Assets restored to /tmp/fortune-teller
 2018/05/01 02:13:43 Listening for gRPC requests at 50051
 ```
+
+## Invoke
+
+```sh
+$ grpcurl -plaintext localhost:50051 build.stack.fortune.FortuneTeller/Predict
+{
+  "message": "Whenever the literary German dives into a sentence, that is the last\nyou are going to see of him until he emerges on the other side of his\nAtlantic with his verb in his mouth.\n\t\t-- Mark Twain \"A Connecticut Yankee in King Arthur's Court\""
+}
+```
