@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"path"
 
 	"github.com/stackb/fortune-teller/app/fileutil"
 	proto "github.com/stackb/fortune-teller/proto/fortune"
 	"github.com/vromero/gofortune/lib/fortune"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -32,6 +34,8 @@ func main() {
 		fs: createFortuneFilesystemNodeDescriptor(baseDir),
 	}
 	proto.RegisterFortuneTellerServer(grpcServer, fortuneTeller)
+
+	reflection.Register(grpcServer)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
@@ -61,12 +65,13 @@ func (f *FortuneTeller) Predict(ctx context.Context, r *proto.PredictionRequest)
 func createFortuneFilesystemNodeDescriptor(baseDir string) *fortune.FileSystemNodeDescriptor {
 
 	// Restore the packed fortune data
-	fortunes := "./usr/share/games/fortunes"
+	fortuneDir := path.Join(baseDir, "usr/share/games/fortunes")
+
 	fileutil.MustRestore(baseDir, fortuneFiles, nil)
 
 	// init gofortune fs
 	fs, err := fortune.LoadPaths([]fortune.ProbabilityPath{
-		{Path: fortunes},
+		{Path: fortuneDir},
 	})
 	if err != nil {
 		log.Fatalf("Unable to load fortune paths: %v", err)
