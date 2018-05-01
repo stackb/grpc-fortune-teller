@@ -1,4 +1,4 @@
-workspace(name = "com_github_staackb_fortune_teller")
+workspace(name = "com_github_stackb_fortune_teller")
 
 #####################################################################
 # RULES_GO
